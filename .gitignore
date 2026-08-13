@@ -10,3 +10,12 @@ samples
 uv.lock
 lightning_logs/
 mos_eval_data/
+
+# pixi environments
+.pixi/*
+!.pixi/config.toml
+pixi.lock
+
+# espeak-ng built from source (scripts/build_espeak_ng.sh)
+.espeak-ng-src/
+.espeak-ng-prefix/

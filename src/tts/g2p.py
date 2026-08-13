@@ -1,8 +1,16 @@
 """Text -> phoneme-id G2P for STArK inference.
 
-Uses Phonemizer with the eSpeak NG backend (requires the `espeak-ng` system package — see
-README's Installation section) to reproduce the phoneme convention `ipa.py`'s vocabulary and the
-training data were built on:
+Uses Phonemizer with the eSpeak NG backend to reproduce the phoneme convention `ipa.py`'s
+vocabulary and the training data were built on. Two ways to get eSpeak NG itself, both
+supported here automatically:
+  - `uv sync` + a system install (`sudo apt-get install espeak-ng` / `brew install espeak-ng`)
+    — see README's Installation section.
+  - `pixi run build-espeak-ng` (see `scripts/build_espeak_ng.sh`), which builds it from its
+    official source into `.espeak-ng-prefix/` — no sudo needed, and no third-party
+    bundled-binary wrapper package (espeak-ng isn't on conda-forge). `_get_backend()` below
+    detects and prefers this if present.
+
+Phoneme convention:
   - words are whitespace-tokenized from espeak's IPA output (espeak itself sometimes glues
     adjacent function words with no space, e.g. "from the" -> "fɹʌmðə" — that's expected and
     matches the training data, which used the same tokenization)
@@ -19,6 +27,7 @@ This was reverse-engineered from the training data (no G2P code shipped with the
 preprocessing pipeline) and is a best-effort reproduction, not guaranteed byte-identical to
 whatever produced the original phn/ files for every possible input.
 """
+import os
 import re
 
 import numpy as np
@@ -41,10 +50,32 @@ _PHONEME_SYMBOLS = sorted((s for s in _ipa_symbols if s not in ("_", "|", "*")
 _backend = None
 
 
+def _repo_root():
+    return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+def _configure_local_espeak_ng_build():
+    """If scripts/build_espeak_ng.sh has been run (pixi workflow), point phonemizer at that
+    build instead of relying on it finding a system install. No-op (falls back to whatever
+    phonemizer finds on its own — the uv + system-install workflow) if it hasn't."""
+    prefix = os.path.join(_repo_root(), ".espeak-ng-prefix")
+    lib_candidates = [os.path.join(prefix, "lib", "libespeak-ng.so"),
+                       os.path.join(prefix, "lib64", "libespeak-ng.so")]
+    lib_path = next((p for p in lib_candidates if os.path.exists(p)), None)
+    data_path = os.path.join(prefix, "share", "espeak-ng-data")
+    if lib_path is None or not os.path.isdir(data_path):
+        return
+    os.environ.setdefault("PHONEMIZER_ESPEAK_LIBRARY", lib_path)
+    os.environ.setdefault("PHONEMIZER_ESPEAK_PATH", os.path.join(prefix, "bin", "espeak-ng"))
+    os.environ.setdefault("ESPEAK_DATA_PATH", data_path)
+
+
 def _get_backend():
     global _backend
     if _backend is not None:
         return _backend
+    _configure_local_espeak_ng_build()
+
     from phonemizer.backend import EspeakBackend
 
     _backend = EspeakBackend(

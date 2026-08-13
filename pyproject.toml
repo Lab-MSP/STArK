@@ -34,3 +34,27 @@ dependencies = [
 [build-system]
 requires = ["uv_build>=0.9.16,<0.10.0"]
 build-backend = "uv_build"
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[tool.pixi.pypi-dependencies]
+tts = { path = ".", editable = true }
+
+[tool.pixi.dependencies]
+python = ">=3.11,<3.13"
+# espeak-ng itself isn't packaged on conda-forge (checked — no espeak-ng/espeak/libespeak*
+# package on conda-forge, bioconda, or any channel indexed by anaconda.org, and no
+# conda-forge/espeak-ng-feedstock exists). These are the *build toolchain* to compile it from
+# its official source instead (see the build-espeak-ng task below) — trusting the actively
+# maintained espeak-ng/espeak-ng upstream directly rather than a third-party bundled-binary
+# wrapper package.
+cmake = ">=3.10"
+c-compiler = "*"
+cxx-compiler = "*"
+git = "*"
+make = "*"
+
+[tool.pixi.tasks]
+build-espeak-ng = { cmd = "bash scripts/build_espeak_ng.sh" }
