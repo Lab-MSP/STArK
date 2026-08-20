@@ -1,60 +1,54 @@
 #!/bin/bash
+# One-off read-only quality check of a checkpoint (mid-training or final -- this does NOT push
+# anything to the Hub) against the full LibriTTS-R test-clean split: PCC/DTW of predicted EMA vs
+# ground truth (Setup 1 predicted-duration + Setup 2 aligner-duration, same methodology as
+# eval_and_push.py / the paper's Table 2), plus DNSMOS + UTMOSv2 on the Setup 1 resynthesized
+# audio vs ground truth vs oracle resynthesis (paper Table 1 methodology, extended with UTMOSv2).
+#
+# Usage: bash scripts/eval_full_testset.sh <ckpt_path> <results_path>
+# Runs identically with or without SLURM -- direct invocation above, or
+# `sbatch scripts/eval_full_testset.sh <ckpt_path> <results_path>` (the #SBATCH lines below are
+# a generic starting point; add --partition/--qos if your cluster requires them). Single-GPU
+# inference only (devices=1, no DDP), so any GPU works -- no specific model needed.
+#
 #SBATCH --job-name=stark_eval_testset
-#SBATCH --output=/data/user_data/YOUR_USERNAME/slurm_logs/stark_eval_testset_%j.out
-#SBATCH --error=/data/user_data/YOUR_USERNAME/slurm_logs/stark_eval_testset_%j.err
-#SBATCH --partition=preempt
-#SBATCH --requeue
+#SBATCH --output=logs/stark_eval_testset_%j.out
+#SBATCH --error=logs/stark_eval_testset_%j.err
 #SBATCH --time=08:00:00
 #SBATCH --mem-per-cpu=8G
 #SBATCH --cpus-per-gpu=4
 #SBATCH --gres=gpu:1
 
-# One-off read-only quality check of whatever checkpoint is passed in (mid-training or final —
-# this does NOT push anything to the Hub) against the full LibriTTS-R test-clean split: PCC/DTW
-# of predicted EMA vs ground truth (Setup 1 predicted-duration + Setup 2 aligner-duration, same
-# methodology as eval_and_push.py / the paper's Table 2), plus DNSMOS + UTMOSv2 on the Setup 1
-# resynthesized audio vs ground truth vs oracle resynthesis (paper Table 1 methodology).
-#
-# No longer pinned to L40S (was gpu:L40S:1): L40S nodes are heavily contended cluster-wide,
-# which is most of why 3 straight submissions sat PENDING for up to an hour with zero runtime.
-# This job doesn't need a specific GPU model — it's single-GPU inference only (devices=1, no
-# DDP) — and 3 earlier attempts already got well past model load and into real batch processing
-# on L40S with no sign of the DDP-era hang that motivated pinning it for *training*
-# (train_large_100k.sh), so that risk looks low here. Dropping the GPU-type pin alone got this
-# scheduled instantly instead of queued for an hour+ (confirmed on a real preempt submission).
-# cpus-per-gpu is also trimmed 8->4 (num_workers to match, in the uv run invocation below) —
-# but mem-per-cpu stays at the original 8G (was briefly dropped to 4G, i.e. 16G total, which
-# OOM-killed a real run mid-Setup-2 at ~15.7GB RSS; 4 cpus x 8G = 32G has headroom instead).
+set -e
+
+: "${DATASET_ROOT:=./data/LibriTTS_R}"
+: "${CACHE_ROOT:=./.cache}"
 
 export PATH="$HOME/.local/bin:$PATH"
-cd "$SLURM_SUBMIT_DIR"
+REPO_ROOT="${SLURM_SUBMIT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+cd "$REPO_ROOT"
+mkdir -p logs
 
-# Keep UTMOSv2's pretrained-model download and any HF/torch cache off $HOME (tight 100GB quota).
-# UTMOSv2 does NOT honor XDG_CACHE_HOME (confirmed by reading its source,
-# utmosv2/utils/_constants.py: it hardcodes ~/.cache/utmosv2 unless its own, oddly-misspelled
-# UTMOSV2_CHACHE env var is set) -- a real run landed 818MB under $HOME despite XDG_CACHE_HOME
-# being set, which is part of what drove $HOME to 0 bytes free mid-session.
-export HF_HOME=/data/user_data/YOUR_USERNAME/.cache/huggingface
-export TORCH_HOME=/data/user_data/YOUR_USERNAME/.cache/torch
-export UTMOSV2_CHACHE=/data/user_data/YOUR_USERNAME/.cache/utmosv2
-# uv's own package cache -- where `uv sync --extra eval` downloads/extracts wheels like the
-# 264MB onnxruntime-gpu -- defaults to ~/.cache/uv and was never redirected. This was the actual
-# proximate trigger of a real "Disk quota exceeded" failure mid-extraction: the other caches
-# above were already off $HOME, but this one wasn't, and it's the single largest one in practice
-# (17GB observed accumulated in it from repeated runs of this exact script).
-export UV_CACHE_DIR=/data/user_data/YOUR_USERNAME/.cache/uv
+# Keep the UTMOSv2 pretrained-model download, HF/torch cache, and uv's own package cache
+# (downloaded/extracted by `uv sync --extra eval`, e.g. onnxruntime-gpu) under one place instead
+# of scattering into $HOME's default cache locations. UTMOSv2 does NOT honor XDG_CACHE_HOME --
+# it hardcodes ~/.cache/utmosv2 unless its own (oddly-misspelled) UTMOSV2_CHACHE env var is set.
+export HF_HOME="$CACHE_ROOT/huggingface"
+export TORCH_HOME="$CACHE_ROOT/torch"
+export UTMOSV2_CHACHE="$CACHE_ROOT/utmosv2"
+export UV_CACHE_DIR="$CACHE_ROOT/uv"
 mkdir -p "$HF_HOME" "$TORCH_HOME" "$UTMOSV2_CHACHE" "$UV_CACHE_DIR"
 
-CKPT_PATH="${1:?usage: sbatch eval_full_testset.sh <ckpt_path> <results_path>}"
-RESULTS_PATH="${2:?usage: sbatch eval_full_testset.sh <ckpt_path> <results_path>}"
+CKPT_PATH="${1:?usage: eval_full_testset.sh <ckpt_path> <results_path>}"
+RESULTS_PATH="${2:?usage: eval_full_testset.sh <ckpt_path> <results_path>}"
 
-# Snapshot the checkpoint before evaluating rather than reading it live: if $CKPT_PATH is an
-# actively-training run's last.ckpt (as it is here), training will keep overwriting it
-# periodically over the course of this job's up-to-8-hour runtime, and Lightning's
-# ModelCheckpoint doesn't write it via an atomic rename — a read mid-write could load a
-# truncated/corrupt file. Copying once up front pins us to one consistent, fully-written state.
-SNAPSHOT_PATH="/scratch/job_tmp/stark_eval_ckpt_snapshot_${SLURM_JOB_ID}.ckpt"
-mkdir -p "$(dirname "$SNAPSHOT_PATH")"
+# Snapshot the checkpoint before evaluating rather than reading it live, in case $CKPT_PATH
+# belongs to a still-running training job: Lightning's ModelCheckpoint doesn't write via an
+# atomic rename, so a read mid-write could load a truncated/corrupt file. Uses SLURM's per-job
+# scratch dir if available, else a local tmp dir.
+SNAPSHOT_DIR="${SLURM_TMPDIR:-$REPO_ROOT/.tmp}"
+mkdir -p "$SNAPSHOT_DIR"
+SNAPSHOT_PATH="$SNAPSHOT_DIR/eval_ckpt_snapshot_$$.ckpt"
 cp "$CKPT_PATH" "$SNAPSHOT_PATH"
 echo "=== snapshotted $CKPT_PATH -> $SNAPSHOT_PATH ==="
 
@@ -64,10 +58,11 @@ uv sync --extra eval
 echo "=== evaluating $SNAPSHOT_PATH (snapshot of $CKPT_PATH) on test-clean, writing to $RESULTS_PATH ==="
 uv run --extra eval scripts/eval_full_testset.py \
     --checkpoint "$SNAPSHOT_PATH" \
-    --dataset_root /data/user_data/YOUR_USERNAME/LibriTTS_R/ \
+    --dataset_root "$DATASET_ROOT" \
     --num_workers 4 \
     --results_path "$RESULTS_PATH"
 exit_code=$?
 
+rm -f "$SNAPSHOT_PATH"
 echo "=== eval script exited with code $exit_code ==="
 exit $exit_code

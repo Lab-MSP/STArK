@@ -19,9 +19,9 @@ This does NOT push anything to the Hub — it's a read-only quality check on a l
 
 Usage:
     uv run --extra eval scripts/eval_full_testset.py \
-        --checkpoint /data/user_data/YOUR_USERNAME/articulatory-tts/stark_large_100k/ckpt/last.ckpt \
-        --dataset_root /data/user_data/YOUR_USERNAME/LibriTTS_R/ \
-        --results_path /data/user_data/YOUR_USERNAME/articulatory-tts/stark_large_100k/testset_eval.json
+        --checkpoint ./outputs/stark_large_100k/ckpt/last.ckpt \
+        --dataset_root ./data/LibriTTS_R/ \
+        --results_path ./outputs/stark_large_100k/testset_eval.json
 """
 import argparse
 import json

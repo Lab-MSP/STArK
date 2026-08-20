@@ -13,8 +13,8 @@ files, and `train-clean-100` alone has ~33k utterances. `LibriTTSDataset` expect
 
 Usage:
     python scripts/build_hf_dataset.py \
-        --source_root /data/user_data/YOUR_USERNAME/LibriTTS_R \
-        --staging_root /data/user_data/YOUR_USERNAME/libritts-r-stark-staging \
+        --source_root ./data/LibriTTS_R \
+        --staging_root ./outputs/libritts-r-stark-staging \
         --repo_id nzxyin/libritts-r-stark \
         --upload
 """

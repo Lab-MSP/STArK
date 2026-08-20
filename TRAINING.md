@@ -15,9 +15,20 @@ train=train_large` (with the default `preprocess=default_preprocess`), evaluated
 python train.py train=train_large model=large_model
 ```
 
-`train_preempt.sh` runs this exact command on the `preempt` SLURM partition (checkpointed every
-2000 steps, auto-resumes from the last checkpoint so it's safe to preempt/requeue). Everything
-else under `conf/` — `small_model`, `spk_dur_cond_model`, `spk_full_cond_model`,
+`train_preempt.sh` runs this exact command on a SLURM `preempt`-style partition (checkpointed
+every 2000 steps, auto-resumes from the last checkpoint so it's safe to preempt/requeue).
+[`scripts/train_large_100k.sh`](scripts/train_large_100k.sh) runs the same configuration further,
+capped at 100,000 steps — this is what produced the fully-trained checkpoint hosted at
+[`nzxyin/stark-large`](https://huggingface.co/nzxyin/stark-large) (a stronger public release than
+the paper's own reported step-32000 checkpoint). Both scripts work identically with or without
+SLURM (see the comments at the top of each) and only need `--partition`/`--qos` adjusted for your
+own cluster, if any. The self-chaining logic in `scripts/train_large_100k.sh` is a generic
+starting point; the authors' own private-cluster automation (custom partition/QoS selection, a
+fast-fail circuit breaker, node-contention handling) lives on the
+[`nzxyin/STArK` fork](https://github.com/nzxyin/STArK) if you want to see the fuller
+production version.
+
+Everything else under `conf/` — `small_model`, `spk_dur_cond_model`, `spk_full_cond_model`,
 `libritts_clean_360_preprocess`, `ljspeech_preprocess`, `ljspeech_large` (and `train.sh`, which
 runs the LJSpeech config) — are separate, unpublished experiments in this same codebase, **not**
 used for the Interspeech 2026 paper.
@@ -136,3 +147,10 @@ Set the data/output paths in the first few cells before running.
 Pushing a trained checkpoint to Hugging Face and evaluating it end-to-end (round-tripped through
 the Hub, not just read from the local file) is scripted in
 [`scripts/eval_and_push.py`](scripts/eval_and_push.py) / `scripts/eval_and_push.sh`.
+
+For a read-only quality check of any checkpoint (mid-training or final, no Hub push) against the
+full test-clean split — PCC/DTW of predicted EMA plus DNSMOS/UTMOSv2 on the resynthesized
+audio — see [`scripts/eval_full_testset.py`](scripts/eval_full_testset.py) /
+`scripts/eval_full_testset.sh`. [`scripts/plot_eval_examples.py`](scripts/plot_eval_examples.py) /
+`scripts/plot_eval_examples.sh` generates example articulatory-trace comparison plots and a
+DTW/PCC summary chart from the same kind of checkpoint + results.

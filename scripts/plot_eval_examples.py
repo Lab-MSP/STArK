@@ -10,11 +10,11 @@
 
 Usage:
     uv run scripts/plot_eval_examples.py \
-        --checkpoint /data/user_data/YOUR_USERNAME/articulatory-tts/stark_large_100k/ckpt/last.ckpt \
-        --dataset_root /data/user_data/YOUR_USERNAME/LibriTTS_R/ \
-        --results_json /data/user_data/YOUR_USERNAME/articulatory-tts/stark_large_100k/testset_eval_20260818_122038.json \
+        --checkpoint ./outputs/stark_large_100k/ckpt/last.ckpt \
+        --dataset_root ./data/LibriTTS_R/ \
+        --results_json ./outputs/stark_large_100k/testset_eval.json \
         --n 4 \
-        --out_dir /data/user_data/YOUR_USERNAME/articulatory-tts/stark_large_100k/plots
+        --out_dir ./outputs/stark_large_100k/plots
 """
 import argparse
 import json

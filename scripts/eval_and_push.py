@@ -4,10 +4,10 @@ split, reporting the same PCC/DTW metrics as `testing.ipynb`.
 
 Usage:
     python scripts/eval_and_push.py \
-        --ckpt_path /data/user_data/YOUR_USERNAME/articulatory-tts/ddp_slurm_large_model/ckpt/last.ckpt \
+        --ckpt_path ./outputs/stark_large_100k/ckpt/last.ckpt \
         --repo_id nzxyin/stark-large \
         --overrides model=large_model train=train_large \
-                    preprocess.dataset.dataset_root=/data/user_data/YOUR_USERNAME/LibriTTS_R/
+                    preprocess.dataset.dataset_root=./data/LibriTTS_R/
 """
 import argparse
 import json

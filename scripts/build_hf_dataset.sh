@@ -1,23 +1,33 @@
 #!/bin/bash
+# Stages and uploads preprocessed LibriTTS-R SPARC features to a Hugging Face dataset repo.
+# Needs a Hugging Face token cached first (e.g. via `hf auth login`).
+#
+# Runs identically with or without SLURM -- `bash scripts/build_hf_dataset.sh` directly, or
+# `sbatch scripts/build_hf_dataset.sh` (the #SBATCH lines below are a generic starting point;
+# add --partition/--qos if your cluster requires them). This is I/O-bound, no GPU needed.
+#
 #SBATCH --job-name=build_hf_dataset
-#SBATCH --output=/data/user_data/YOUR_USERNAME/slurm_logs/build_hf_dataset_%j.out
-#SBATCH --error=/data/user_data/YOUR_USERNAME/slurm_logs/build_hf_dataset_%j.err
-#SBATCH --partition=cpu
+#SBATCH --output=logs/build_hf_dataset_%j.out
+#SBATCH --error=logs/build_hf_dataset_%j.err
 #SBATCH --time=1-00:00:00
 #SBATCH --mem-per-cpu=8G
 #SBATCH --cpus-per-task=4
-# Uncomment and set to your own email to get job-completion notifications:
-# #SBATCH --mail-type=END,FAIL
-# #SBATCH --mail-user=you@example.com
 
-# Needs a Hugging Face token cached (e.g. via `hf auth login`) under HF_HOME below.
-export HF_HOME="/data/user_data/$USER/.hf_cache"
+set -e
+
+: "${SOURCE_ROOT:=./data/LibriTTS_R}"
+: "${STAGING_ROOT:=./outputs/libritts-r-stark-staging}"
+: "${REPO_ID:?set REPO_ID to your target HF Hub dataset repo, e.g. your-username/libritts-r-stark}"
+: "${HF_HOME:=./.hf_cache}"
+
+export HF_HOME
 export PATH="$HOME/.local/bin:$PATH"
-
-cd "$SLURM_SUBMIT_DIR"
+REPO_ROOT="${SLURM_SUBMIT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+cd "$REPO_ROOT"
+mkdir -p logs
 
 uv run --no-project --with huggingface_hub python scripts/build_hf_dataset.py \
-    --source_root "/data/user_data/YOUR_USERNAME/LibriTTS_R" \
-    --staging_root "/data/user_data/YOUR_USERNAME/libritts-r-stark-staging" \
-    --repo_id "nzxyin/libritts-r-stark" \
+    --source_root "$SOURCE_ROOT" \
+    --staging_root "$STAGING_ROOT" \
+    --repo_id "$REPO_ID" \
     --upload

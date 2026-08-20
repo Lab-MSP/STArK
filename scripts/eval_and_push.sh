@@ -1,28 +1,38 @@
 #!/bin/bash
-#SBATCH --job-name=stark_large_eval_push
-#SBATCH --output=/data/user_data/YOUR_USERNAME/slurm_logs/stark_large_eval_push_%j.out
-#SBATCH --error=/data/user_data/YOUR_USERNAME/slurm_logs/stark_large_eval_push_%j.err
-#SBATCH --partition=msp
-#SBATCH --qos=msp_qos
+# Pushes a trained checkpoint to the Hugging Face Hub, then loads it back *from the Hub*
+# (round-trip, not just reading the local file) and evaluates it on the LibriTTS-R test-clean
+# split, reporting the same PCC/DTW metrics as testing.ipynb / the paper's Table 2.
+#
+# Runs identically with or without SLURM -- `bash scripts/eval_and_push.sh` directly, or
+# `sbatch scripts/eval_and_push.sh` (the #SBATCH lines below are a generic starting point; add
+# --partition/--qos if your cluster requires them). Needs a Hugging Face token cached first
+# (e.g. via `hf auth login`).
+#
+#SBATCH --job-name=stark_eval_push
+#SBATCH --output=logs/stark_eval_push_%j.out
+#SBATCH --error=logs/stark_eval_push_%j.err
 #SBATCH --time=12:00:00
 #SBATCH --mem-per-cpu=8G
 #SBATCH --cpus-per-gpu=4
-#SBATCH --gres=gpu:L40S:1
+#SBATCH --gres=gpu:1
 
-# msp: this account's private partition (see train_large_100k.sh for the full rationale) --
-# higher priority than general/preempt, not subject to general's 8-GPU/user cap. Matches the
-# partition train_large_100k.sh submits this job onto once training finishes.
+set -e
 
-# Needs a Hugging Face token cached (e.g. via `hf auth login`) under HF_HOME below.
-export HF_HOME="/data/user_data/$USER/.hf_cache"
+: "${DATASET_ROOT:=./data/LibriTTS_R}"
+: "${OUTPUT_ROOT:=./outputs/stark_large_100k}"
+: "${REPO_ID:?set REPO_ID to your target HF Hub model repo, e.g. your-username/stark-large}"
+: "${HF_HOME:=./.hf_cache}"
+
+export HF_HOME
 export PATH="$HOME/.local/bin:$PATH"
-
-cd "$SLURM_SUBMIT_DIR"
+REPO_ROOT="${SLURM_SUBMIT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+cd "$REPO_ROOT"
+mkdir -p logs
 
 uv run python scripts/eval_and_push.py \
-    --ckpt_path /data/user_data/YOUR_USERNAME/articulatory-tts/stark_large_100k/ckpt/last.ckpt \
-    --repo_id nzxyin/stark-large \
-    --dataset_root /data/user_data/YOUR_USERNAME/LibriTTS_R/ \
+    --ckpt_path "$OUTPUT_ROOT/ckpt/last.ckpt" \
+    --repo_id "$REPO_ID" \
+    --dataset_root "$DATASET_ROOT" \
     --overrides model=large_model train=train_large \
-        train.checkpoint.dirpath=/data/user_data/YOUR_USERNAME/articulatory-tts/stark_large_100k/ckpt \
-        train.logger.save_dir=/data/user_data/YOUR_USERNAME/articulatory-tts/stark_large_100k/log
+        train.checkpoint.dirpath="$OUTPUT_ROOT/ckpt" \
+        train.logger.save_dir="$OUTPUT_ROOT/log"
