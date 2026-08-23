@@ -336,10 +336,15 @@
   <p>
     Generated with <a href="https://github.com/Lab-MSP/STArK/blob/main/scripts/stark_cli.py"><code>scripts/stark_cli.py</code></a>
     using the fully-trained checkpoint (step 100,000 — verified against the paper's Table 1/2
-    results, see <a href="https://github.com/Lab-MSP/STArK#readme">README</a>). Each sample clones
-    a different LibriTTS-R <code>test-clean</code> speaker's voice from a short reference clip —
-    the reference clip's spoken content is unrelated to the synthesized sentence; it's shown only
-    to demonstrate the voice being cloned.
+    results, see <a href="https://github.com/Lab-MSP/STArK#readme">README</a>).
+  </p>
+
+  <h3>Unseen text</h3>
+  <p class="muted">
+    Sentences not drawn from any dataset. Each sample clones a different LibriTTS-R
+    <code>test-clean</code> speaker's voice from a short reference clip — the reference clip's
+    spoken content is unrelated to the synthesized sentence; it's shown only to demonstrate the
+    voice being cloned.
   </p>
   <div class="samples">
 
@@ -359,6 +364,34 @@
       <p class="sample-text">"Articulatory kinematics describes how the tongue, lips, and jaw move during speech production."</p>
       <div class="sample-row"><span class="sample-label">STArK (generated)</span><audio controls src="assets/audio/demo_2.wav"></audio></div>
       <div class="sample-row"><span class="sample-label">Reference voice</span><audio controls src="assets/audio/reference_2.wav"></audio></div>
+    </div>
+
+  </div>
+
+  <h3>Test-set text</h3>
+  <p class="muted">
+    Sentences drawn directly from LibriTTS-R <code>test-clean</code> transcripts, cloning that
+    same utterance's speaker — paired against the actual ground-truth recording of the same
+    sentence for direct comparison.
+  </p>
+  <div class="samples">
+
+    <div class="sample-card">
+      <p class="sample-text">"Reference has already been made to the work abroad in Paris and London."</p>
+      <div class="sample-row"><span class="sample-label">STArK (generated)</span><audio controls src="assets/audio/testset_0.wav"></audio></div>
+      <div class="sample-row"><span class="sample-label">Ground truth</span><audio controls src="assets/audio/testset_0_gt.wav"></audio></div>
+    </div>
+
+    <div class="sample-card">
+      <p class="sample-text">"I'd like it first rate to be away from Percy," said Van, reflectively; "I wouldn't come back in three, no, six weeks."</p>
+      <div class="sample-row"><span class="sample-label">STArK (generated)</span><audio controls src="assets/audio/testset_1.wav"></audio></div>
+      <div class="sample-row"><span class="sample-label">Ground truth</span><audio controls src="assets/audio/testset_1_gt.wav"></audio></div>
+    </div>
+
+    <div class="sample-card">
+      <p class="sample-text">"The people contested these measures one by one in the courts; presenting in case after case the different phases of the subject, and urging the unconstitutionality of the measure."</p>
+      <div class="sample-row"><span class="sample-label">STArK (generated)</span><audio controls src="assets/audio/testset_2.wav"></audio></div>
+      <div class="sample-row"><span class="sample-label">Ground truth</span><audio controls src="assets/audio/testset_2_gt.wav"></audio></div>
     </div>
 
   </div>
