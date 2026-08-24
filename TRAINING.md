@@ -19,7 +19,7 @@ python train.py train=train_large model=large_model
 every 2000 steps, auto-resumes from the last checkpoint so it's safe to preempt/requeue).
 [`scripts/train_large_100k.sh`](scripts/train_large_100k.sh) runs the same configuration further,
 capped at 100,000 steps — this is what produced the fully-trained checkpoint hosted at
-[`nzxyin/stark-large`](https://huggingface.co/nzxyin/stark-large) (a stronger public release than
+[`Lab-MSP/stark-large`](https://huggingface.co/Lab-MSP/stark-large) (a stronger public release than
 the paper's own reported step-32000 checkpoint). Both scripts work identically with or without
 SLURM (see the comments at the top of each) and only need `--partition`/`--qos` adjusted for your
 own cluster, if any. The self-chaining logic in `scripts/train_large_100k.sh` is a generic
@@ -52,7 +52,7 @@ duplicated, and no custom `datasets` loading script is needed:
 ```python
 from huggingface_hub import snapshot_download
 snapshot_download(
-    repo_id="nzxyin/libritts-r-stark",  # will move to a Lab-MSP namespace later
+    repo_id="Lab-MSP/libritts-r-stark",  # will move to a Lab-MSP namespace later
     repo_type="dataset",
     local_dir="/path/to/libritts-r-stark-download",
 )
