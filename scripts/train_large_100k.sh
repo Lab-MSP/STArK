@@ -1,12 +1,12 @@
 #!/bin/bash
 # Trains the paper's reported configuration (model=large_model train=train_large) capped at
-# 100000 steps, with auto-resume from the last checkpoint (train.py itself checks for
+# 100000 steps, with auto-resume from the last checkpoint (scripts/train.py itself checks for
 # {checkpoint.dirpath}/last.ckpt and resumes if present, so re-running this script after an
 # interruption is always safe).
 #
 # Runs identically with or without SLURM:
 #   - No SLURM: just `bash scripts/train_large_100k.sh` on any machine with GPUs. Runs
-#     train.py directly and exits when training finishes.
+#     scripts/train.py directly and exits when training finishes.
 #   - With SLURM: `sbatch scripts/train_large_100k.sh`. The #SBATCH lines below are a generic
 #     starting point -- add --partition/--qos if your cluster requires them, and adjust
 #     --time/--gres to taste. If your cluster gives jobs a wall-clock limit shorter than a full
@@ -54,7 +54,7 @@ CHAIN_MARKER="$OUTPUT_ROOT/.chain_count"
 mkdir -p "$CKPT_DIR" "$LOG_DIR"
 
 # Self-chaining is only meaningful under SLURM (where a job has a wall-clock time limit) --
-# skipped entirely otherwise, where this script just runs train.py directly until it finishes
+# skipped entirely otherwise, where this script just runs scripts/train.py directly until it finishes
 # or you stop it.
 successor_id=""
 if [ -n "$SLURM_JOB_ID" ]; then
@@ -72,7 +72,7 @@ if [ -n "$SLURM_JOB_ID" ]; then
 fi
 
 echo "=== training on $(hostname) ==="
-uv run train.py train=train_large model=large_model train.trainer.max_steps=$MAX_STEPS \
+uv run scripts/train.py train=train_large model=large_model train.trainer.max_steps=$MAX_STEPS \
     train.trainer.devices=$DEVICES \
     train.trainer.accumulate_grad_batches=$ACCUM_STEPS \
     preprocess.dataset.dataset_root=$DATASET_ROOT \
