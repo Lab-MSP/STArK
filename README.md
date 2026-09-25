@@ -79,7 +79,7 @@ trajectory, with (orange, "STARK+align") and without (green) ground-truth-aligne
 If you use this code, please cite:
 
 ```bibtex
-@inproceedings{yin26b_interspeech,
+@inproceedings{yin2026stark,
   title     = {{STArK: Towards Synthesizing Articulatory Kinematics from Text}},
   author    = {Xavier Yin and Carlos Busso},
   year      = {2026},
