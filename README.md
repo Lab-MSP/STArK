@@ -7,7 +7,7 @@ SPARC vocoder.
 
 > STArK: Towards Synthesizing Articulatory Kinematics from Text
 > Xavier Yin, Carlos Busso — Interspeech 2026
-> [Paper (PDF)](https://lab-msp.com/MSP/publications/Yin_2026.pdf) — temporary link, pending official proceedings
+> [Paper](https://www.isca-archive.org/interspeech_2026/yin26b_interspeech.html) ([PDF](https://www.isca-archive.org/interspeech_2026/yin26b_interspeech.pdf)) — ISCA Archive, Interspeech 2026 proceedings
 > [Project page](https://lab-msp.github.io/STArK/) — results and demo samples
 
 Training your own model or reproducing the paper's results from scratch? See
@@ -80,10 +80,13 @@ If you use this code, please cite:
 
 ```bibtex
 @inproceedings{yin2026stark,
-  title     = {{STArK}: Towards Synthesizing Articulatory Kinematics from Text},
-  author    = {Yin, Xavier and Busso, Carlos},
-  booktitle = {Proc. Interspeech 2026},
-  year      = {2026}
+  title     = {{STArK: Towards Synthesizing Articulatory Kinematics from Text}},
+  author    = {Xavier Yin and Carlos Busso},
+  year      = {2026},
+  booktitle = {{Interspeech 2026}},
+  pages     = {6542--6547},
+  doi       = {10.21437/Interspeech.2026-2842},
+  issn      = {2958-1796},
 }
 ```
 
