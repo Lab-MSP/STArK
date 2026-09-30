@@ -8,44 +8,44 @@
 <style>
   :root {
     --bg: #ffffff;
-    --bg-alt: #f6f7f9;
-    --text: #1a1d23;
-    --text-muted: #5b6270;
-    --border: #e2e5ea;
-    --accent: #2f6f4f;
+    --bg-alt: #fbf0f1;
+    --text: #1a1a1a;
+    --text-muted: #6e6e6e;
+    --border: #f6d8dd;
+    --accent: #c41230;
     --accent-text: #ffffff;
-    --link: #1f5f8b;
-    --table-header-bg: #eef1f4;
-    --code-bg: #f0f1f3;
+    --link: #1155cc;
+    --table-header-bg: #ededed;
+    --code-bg: #f3f3f3;
     --shadow: 0 1px 3px rgba(0,0,0,0.08);
     --max-width: 880px;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #14161a;
-      --bg-alt: #1b1e24;
-      --text: #eceef1;
-      --text-muted: #9aa1ad;
-      --border: #2c3038;
-      --accent: #4fae7f;
-      --accent-text: #0b120e;
-      --link: #6cb6e0;
-      --table-header-bg: #20242b;
-      --code-bg: #1c1f26;
+      --bg: #161314;
+      --bg-alt: #221a1c;
+      --text: #ededed;
+      --text-muted: #a8a8a8;
+      --border: #3d2a2e;
+      --accent: #e0506a;
+      --accent-text: #1a0a0d;
+      --link: #7aa7f0;
+      --table-header-bg: #262223;
+      --code-bg: #1f1c1d;
       --shadow: 0 1px 3px rgba(0,0,0,0.4);
     }
   }
   :root[data-theme="dark"] {
-    --bg: #14161a;
-    --bg-alt: #1b1e24;
-    --text: #eceef1;
-    --text-muted: #9aa1ad;
-    --border: #2c3038;
-    --accent: #4fae7f;
-    --accent-text: #0b120e;
-    --link: #6cb6e0;
-    --table-header-bg: #20242b;
-    --code-bg: #1c1f26;
+    --bg: #161314;
+    --bg-alt: #221a1c;
+    --text: #ededed;
+    --text-muted: #a8a8a8;
+    --border: #3d2a2e;
+    --accent: #e0506a;
+    --accent-text: #1a0a0d;
+    --link: #7aa7f0;
+    --table-header-bg: #262223;
+    --code-bg: #1f1c1d;
     --shadow: 0 1px 3px rgba(0,0,0,0.4);
   }
 
@@ -198,6 +198,9 @@
     color: var(--text-muted);
     min-width: 9rem;
   }
+  .audio-table td { padding: 0.5rem; }
+  .audio-table audio { display: block; width: 240px; min-width: 0; }
+  h3 { font-size: 1.05rem; margin: 1.75rem 0 0.75rem; }
   audio { flex: 1 1 260px; min-width: 220px; max-width: 100%; height: 36px; }
 
   pre {
@@ -327,6 +330,49 @@
         <tr><th>EMA</th><td>0.905±0.001</td><td>−0.81±0.09</td></tr>
         <tr><th>Pitch</th><td>0.533±0.009</td><td>−0.04±0.04</td></tr>
         <tr><th>Loudness</th><td>0.796±0.002</td><td>−0.20±0.06</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="paper-samples">
+  <h2>Paper samples</h2>
+  <p>
+    The supplementary audio released with the paper, taken from the original
+    <a href="https://stark-project-demo.github.io/">STArK paper demo</a>. Both samples are
+    LibriTTS-R <code>test-clean</code> utterances (<code>1089_134691_000014_000001</code> and
+    <code>1284_1180_000050_000001</code>), corresponding to the systems in Table 1. They were
+    generated with the paper's step-32,000 checkpoint, not the step-100,000 checkpoint used for
+    the demo samples below.
+  </p>
+
+  <h3>Audio samples</h3>
+  <div class="table-scroll">
+    <table class="audio-table">
+      <caption>Ground truth, SPARC resynthesis, the YourTTS baseline, and STArK on the same utterances.</caption>
+      <thead>
+        <tr><th>Model</th><th>Sample 1</th><th>Sample 2</th></tr>
+      </thead>
+      <tbody>
+        <tr><th>Ground truth</th><td><audio controls preload="none" src="assets/audio/paper/gt_1089_134691_000014_000001.wav"></audio></td><td><audio controls preload="none" src="assets/audio/paper/gt_1284_1180_000050_000001.wav"></audio></td></tr>
+        <tr><th>SPARC resynthesis</th><td><audio controls preload="none" src="assets/audio/paper/sparc-resynth_1089_134691_000014_000001.wav"></audio></td><td><audio controls preload="none" src="assets/audio/paper/sparc-resynth_1284_1180_000050_000001.wav"></audio></td></tr>
+        <tr><th>YourTTS</th><td><audio controls preload="none" src="assets/audio/paper/your-tts_1089_134691_000014_000001.wav"></audio></td><td><audio controls preload="none" src="assets/audio/paper/your-tts_1284_1180_000050_000001.wav"></audio></td></tr>
+        <tr><th>STArK (ours)</th><td><audio controls preload="none" src="assets/audio/paper/art-tts_1089_134691_000014_000001.wav"></audio></td><td><audio controls preload="none" src="assets/audio/paper/art-tts_1284_1180_000050_000001.wav"></audio></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Duration and prosody ablations</h3>
+  <div class="table-scroll">
+    <table class="audio-table">
+      <caption>Base STArK (Setup 1), + aligner durations (Setup 2), and + aligner durations with ground-truth prosody (Setup 3).</caption>
+      <thead>
+        <tr><th>Model</th><th>Sample 1</th><th>Sample 2</th></tr>
+      </thead>
+      <tbody>
+        <tr><th>Base STArK</th><td><audio controls preload="none" src="assets/audio/paper/art-tts_1089_134691_000014_000001.wav"></audio></td><td><audio controls preload="none" src="assets/audio/paper/art-tts_1284_1180_000050_000001.wav"></audio></td></tr>
+        <tr><th>STArK w/ aligner durations</th><td><audio controls preload="none" src="assets/audio/paper/art-tts-align_1089_134691_000014_000001.wav"></audio></td><td><audio controls preload="none" src="assets/audio/paper/art-tts-align_1284_1180_000050_000001.wav"></audio></td></tr>
+        <tr><th>STArK w/ aligner durations + GT prosody</th><td><audio controls preload="none" src="assets/audio/paper/art-tts-prosody_1089_134691_000014_000001.wav"></audio></td><td><audio controls preload="none" src="assets/audio/paper/art-tts-prosody_1284_1180_000050_000001.wav"></audio></td></tr>
       </tbody>
     </table>
   </div>
