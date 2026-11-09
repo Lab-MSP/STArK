@@ -15,13 +15,17 @@ train=train_large` (with the default `preprocess=default_preprocess`), evaluated
 python scripts/train.py train=train_large model=large_model
 ```
 
+The step-32000 paper checkpoint is the one hosted at
+[`Lab-MSP/stark-large`](https://huggingface.co/Lab-MSP/stark-large) (`checkpoint.ckpt` on `main`,
+also tagged `paper-step-32k`), and it is what `scripts/stark_cli.py` downloads by default. Until
+2026-11-05 that repo instead served a separate 100,000-step run, which does not match the paper's
+reported results. That checkpoint is still available at the `step-100k` tag
+(`hf_hub_download("Lab-MSP/stark-large", "checkpoint.ckpt", revision="step-100k")`).
+
 [`scripts/train_preempt.sh`](scripts/train_preempt.sh) runs this exact command on a SLURM
 `preempt`-style partition (checkpointed every 2000 steps, auto-resumes from the last checkpoint
 so it's safe to preempt/requeue). [`scripts/train_large_100k.sh`](scripts/train_large_100k.sh)
-runs the same configuration further, capped at 100,000 steps — this is what produced the
-fully-trained checkpoint hosted at
-[`Lab-MSP/stark-large`](https://huggingface.co/Lab-MSP/stark-large) (a stronger public release than
-the paper's own reported step-32000 checkpoint). Both scripts work identically with or without
+runs the same configuration further, capped at 100,000 steps. Both scripts work identically with or without
 SLURM (see the comments at the top of each) and only need `--partition`/`--qos` adjusted for your
 own cluster, if any. The self-chaining logic in `scripts/train_large_100k.sh` is a generic
 starting point; the authors' own private-cluster automation (custom partition/QoS selection, a
