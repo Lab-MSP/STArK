@@ -381,8 +381,8 @@
     <a href="https://stark-project-demo.github.io/">STArK paper demo</a>. Both samples are
     LibriTTS-R <code>test-clean</code> utterances (<code>1089_134691_000014_000001</code> and
     <code>1284_1180_000050_000001</code>), corresponding to the systems in Table 1. They were
-    generated with the paper's step-32,000 checkpoint, not the step-100,000 checkpoint used for
-    the demo samples below.
+    generated with the paper's step-32,000 checkpoint, the same checkpoint used for the demo
+    samples below.
   </p>
 
   <h3>Audio samples</h3>
@@ -421,8 +421,9 @@
   <h2>Demo samples</h2>
   <p>
     Generated with <a href="https://github.com/Lab-MSP/STArK/blob/main/scripts/stark_cli.py"><code>scripts/stark_cli.py</code></a>
-    using the fully-trained checkpoint (step 100,000 — verified against the paper's Table 1/2
-    results, see <a href="https://github.com/Lab-MSP/STArK#readme">README</a>).
+    using the paper's step-32,000 checkpoint, published as
+    <a href="https://huggingface.co/Lab-MSP/stark-large"><code>Lab-MSP/stark-large</code></a>
+    (the default for <code>stark_cli.py</code>).
   </p>
 
   <h3>Unseen text</h3>
